@@ -58,6 +58,10 @@ def process_data(records):
 
     # Reverse to maintain chronological order
     db_energy.extend(new_data_energy[::-1])
+
+    # Keep only the last 10,000 records in memory
+    db_energy = db_energy[-10000:]
+
     return pd.DataFrame(db_energy)
 
 
@@ -76,7 +80,8 @@ def render_metrics_tab(data_energy, current_power_MW, current_emissions_kg):
     with col1:
         col1.metric("Puissance Actuelle", f"{current_power_MW:.2f} MW")
     with col2:
-        col2.metric("Émissions Actuelles", f"{current_emissions_kg:.2f} kg CO2 / kWh")
+        col2.metric("Émissions Actuelles",
+                    f"{current_emissions_kg:.2f} kg CO2 / kWh")
 
     # Creating a DataFrame for the current mix of energy sources
     latest_data = data_energy.iloc[-1]
@@ -98,10 +103,11 @@ def render_metrics_tab(data_energy, current_power_MW, current_emissions_kg):
     st.plotly_chart(fig_current_mix, use_container_width=True)
 
 
-
 def render_energy_sources_tab(data_energy):
-    ordered_sources_sum_last_100 = data_energy.drop(columns=['Total', 'Date']).tail(100).sum().sort_values(ascending=False)
-    ordered_columns = ['Date'] + [source for source in color_palette.keys() if source in ordered_sources_sum_last_100.index]
+    ordered_sources_sum_last_100 = data_energy.drop(
+        columns=['Total', 'Date']).tail(100).sum().sort_values(ascending=False)
+    ordered_columns = ['Date'] + [source for source in color_palette.keys()
+                                  if source in ordered_sources_sum_last_100.index]
 
     fig_energy = px.area(data_energy[ordered_columns], x='Date', y=ordered_columns[1:],
                          title='Sources d\'Énergie au Fil du Temps',
@@ -124,7 +130,8 @@ def render_energy_sources_tab(data_energy):
 
 
 def render_emissions_tab(data_emissions):
-    ordered_columns = ['Date'] + [source for source in color_palette.keys() if source in data_emissions.columns]
+    ordered_columns = [
+        'Date'] + [source for source in color_palette.keys() if source in data_emissions.columns]
 
     fig_emissions = px.area(data_emissions[ordered_columns], x='Date', y=ordered_columns[1:],
                             title='Émissions au Fil du Temps (g par kWh)',
@@ -147,14 +154,13 @@ def render_emissions_tab(data_emissions):
     st.plotly_chart(fig_emissions, use_container_width=True)
 
 
-
-
 def render_total_production_tab(data_energy):
     fig_total_production = px.line(data_energy, x='Date', y='Total',
                                    title='Production Totale au Fil du Temps (MW)',
                                    labels={'Total': 'Production Totale'},
                                    height=600)
-    fig_total_production.update_traces(hovertemplate="<b>Production:</b> %{y} MW<br><b>Time:</b> %{x}<extra></extra>")
+    fig_total_production.update_traces(
+        hovertemplate="<b>Production:</b> %{y} MW<br><b>Time:</b> %{x}<extra></extra>")
     fig_total_production.update_layout(
         xaxis_showgrid=True,
         yaxis_showgrid=True,
@@ -163,7 +169,6 @@ def render_total_production_tab(data_energy):
     )
 
     st.plotly_chart(fig_total_production, use_container_width=True)
-
 
 
 def render_storage_hydro_tab(data_energy):
@@ -247,7 +252,6 @@ def render_about_tab():
     st.write("""
         Les données sont récupérées en temps réel et le tableau de bord est mis à jour toutes les 5 minutes. Pour toute question ou commentaire, n'hésitez pas à nous contacter.
     """)
-
 
 
 def main():
